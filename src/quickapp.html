@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickApp</title>
+    <link rel="stylesheet" href="quickapp.css">
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/theme/monokai.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 id="quickAppTitle">QuickApp</h1>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" data-tab="json">JSON</button>
+            <button class="tab-button" data-tab="files">Files</button>
+            <button class="tab-button" data-tab="ui">UI</button>
+        </div>
+
+        <div class="tab-content">
+            <div id="json-tab" class="tab-panel active">
+                <pre id="jsonContent" class="json-view"></pre>
+            </div>
+
+            <div id="files-tab" class="tab-panel">
+                <div class="files-layout">
+                    <div class="file-list">
+                        <div class="file-list-header">
+                            <h3>Files</h3>
+                            <button id="addFileBtn" class="icon-btn" title="Add new file">➕</button>
+                        </div>
+                        <div id="fileListContent"></div>
+                    </div>
+                    <div class="file-content">
+                        <div class="file-header">
+                            <h3 id="currentFileName">Select a file</h3>
+                            <button id="saveFileBtn" class="btn btn-primary" style="display: none;">Save</button>
+                        </div>
+                        <div id="editorContainer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ui-tab" class="tab-panel">
+                <div class="ui-tab-content">
+                    <div class="ui-message">
+                        <p>View the HC3 mobile UI for this QuickApp:</p>
+                        <button id="openUIBrowserBtn" class="btn btn-primary">Open UI in Browser</button>
+                        <p style="margin-top: 15px; font-size: 12px; color: #999;">
+                            Opens the HC3 mobile interface in your default browser
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CodeMirror JS -->
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/lua/lua.min.js"></script>
+    <script src="quickapp.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# Rust build artifacts
+target/
+
+# Node modules
+node_modules/
+
+# Environment files
+.env
+.env.local
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+*.exe
+
+# Editor
+.vscode/
+.idea/
+
+# Tauri specific
+src-tauri/target/
+src-tauri/WixTools/

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="#1e3a8a" opacity="0.95"/>
+  
+  <!-- Document/list background -->
+  <rect x="140" y="100" width="232" height="312" rx="16" fill="#ffffff"/>
+  
+  <!-- Shadow for document -->
+  <rect x="145" y="105" width="222" height="302" rx="12" fill="#f1f5f9"/>
+  
+  <!-- QuickApp lines (representing apps) -->
+  <rect x="170" y="140" width="140" height="12" rx="6" fill="#cbd5e1"/>
+  <rect x="170" y="180" width="172" height="12" rx="6" fill="#cbd5e1"/>
+  <rect x="170" y="220" width="120" height="12" rx="6" fill="#cbd5e1"/>
+  <rect x="170" y="260" width="160" height="12" rx="6" fill="#cbd5e1"/>
+  <rect x="170" y="300" width="145" height="12" rx="6" fill="#cbd5e1"/>
+  <rect x="170" y="340" width="130" height="12" rx="6" fill="#cbd5e1"/>
+  
+  <!-- Activity dots (representing QuickApps) -->
+  <circle cx="320" cy="146" r="8" fill="#10b981"/>
+  <circle cx="350" cy="186" r="8" fill="#10b981"/>
+  <circle cx="300" cy="226" r="8" fill="#10b981"/>
+  <circle cx="340" cy="266" r="8" fill="#10b981"/>
+  <circle cx="325" cy="306" r="8" fill="#10b981"/>
+  <circle cx="310" cy="346" r="8" fill="#10b981"/>
+  
+  <!-- Large Q in the center (replacing clock) -->
+  <g transform="translate(256, 256)">
+    <!-- Q outer circle -->
+    <circle cx="0" cy="0" r="70" fill="none" stroke="#1e3a8a" stroke-width="18"/>
+    
+    <!-- Q tail (bottom right diagonal) -->
+    <line x1="35" y1="40" x2="60" y2="65" stroke="#1e3a8a" stroke-width="18" stroke-linecap="round"/>
+  </g>
+</svg>

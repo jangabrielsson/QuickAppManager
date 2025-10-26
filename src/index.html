@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HC3 QuickApp Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HC3 QuickApp Manager</h1>
+            <div class="header-actions">
+                <button id="refreshBtn" class="btn btn-primary">Refresh</button>
+                <div id="connectionStatus" class="connection-status">
+                    <span id="statusIndicator" class="status-indicator"></span>
+                    <span id="statusText">Disconnected</span>
+                </div>
+                <div class="window-menu">
+                    <button id="windowMenuBtn" class="btn">Windows ▾</button>
+                    <div id="windowMenuDropdown" class="dropdown-menu">
+                        <div class="dropdown-header">Open QuickApps</div>
+                        <div id="windowList" class="window-list"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="table-container">
+                <table class="quickapp-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Last Modified</th>
+                        </tr>
+                    </thead>
+                    <tbody id="quickAppTableBody">
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 20px;">
+                                Click "Refresh" to load QuickApps
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
