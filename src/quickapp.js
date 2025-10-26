@@ -76,6 +76,13 @@ class QuickAppWindow {
             readOnly: false
         });
         
+        // Force refresh after layout is ready
+        setTimeout(() => {
+            if (this.editor) {
+                this.editor.refresh();
+            }
+        }, 100);
+        
         // Track changes
         this.editor.on('change', () => {
             if (this.currentFile && this.saveFileBtn) {
