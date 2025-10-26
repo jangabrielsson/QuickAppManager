@@ -1,0 +1,12 @@
+{
+  "name": "hc3-quickapp-manager",
+  "version": "0.1.0",
+  "description": "Desktop application for managing Fibaro HC3 QuickApps",
+  "scripts": {
+    "tauri": "tauri"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  }
+}
