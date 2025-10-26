@@ -60,7 +60,10 @@ pub fn run() {
     .plugin(tauri_plugin_process::init())
     .invoke_handler(tauri::generate_handler![get_hc3_config, open_url])
     .setup(|app| {
-      // Create menu
+      // Create menu items
+      let check_for_updates = MenuItemBuilder::with_id("check_for_updates", "Check for Updates...")
+        .build(app)?;
+      
       let toggle_devtools = MenuItemBuilder::with_id("toggle_devtools", "Toggle DevTools")
         .accelerator("CmdOrCtrl+Shift+I")
         .build(app)?;
@@ -69,16 +72,14 @@ pub fn run() {
         .item(&toggle_devtools)
         .build()?;
       
-      let check_for_updates = MenuItemBuilder::with_id("check_for_updates", "Check for Updates...")
-        .build(app)?;
-      
-      let help_menu = SubmenuBuilder::new(app, "Help")
-        .item(&check_for_updates)
-        .build()?;
-      
       let menu = Menu::default(&app.handle())?;
+      
+      // Insert "Check for Updates..." into the app menu (first menu on macOS)
+      if let Some(app_menu) = menu.get(app, "app") {
+        app_menu.append(&check_for_updates)?;
+      }
+      
       menu.append(&view_menu)?;
-      menu.append(&help_menu)?;
       
       app.set_menu(menu)?;
       
