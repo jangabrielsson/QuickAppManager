@@ -244,6 +244,7 @@ h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .file-header h3 {
@@ -273,6 +274,7 @@ h1 {
     flex: 1;
     overflow: hidden;
     background-color: #272822;
+    min-height: 0;
 }
 
 .CodeMirror {
