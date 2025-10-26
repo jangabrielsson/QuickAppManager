@@ -128,6 +128,7 @@ h1 {
 .files-layout {
     display: grid;
     grid-template-columns: 250px 1fr;
+    grid-template-rows: 1fr;
     gap: 20px;
     flex: 1;
     min-height: 0;
@@ -139,6 +140,7 @@ h1 {
     border: 1px solid #e0e0e0;
     padding: 15px;
     overflow-y: auto;
+    min-height: 0;
 }
 
 .file-list-header {
