@@ -61,16 +61,19 @@ h1 {
 .tab-content {
     flex: 1;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .tab-panel {
     display: none;
     height: 100%;
-    overflow: auto;
+    overflow: hidden;
 }
 
 .tab-panel.active {
-    display: block;
+    display: flex;
+    flex-direction: column;
 }
 
 /* UI Frame */
