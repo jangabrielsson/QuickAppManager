@@ -275,9 +275,15 @@ h1 {
     overflow: hidden;
     background-color: #272822;
     min-height: 0;
+    position: relative;
 }
 
 .CodeMirror {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     height: 100%;
     font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
     font-size: 13px;
