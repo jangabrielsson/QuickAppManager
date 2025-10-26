@@ -4,6 +4,11 @@
     box-sizing: border-box;
 }
 
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background-color: #f5f5f5;
@@ -12,6 +17,9 @@ body {
 
 .container {
     width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
     padding: 20px;
 }
 
@@ -21,12 +29,21 @@ header {
     align-items: center;
     padding: 20px 0;
     border-bottom: 2px solid #e0e0e0;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
 h1 {
     font-size: 24px;
     color: #1976d2;
+}
+
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .header-actions {
@@ -146,7 +163,9 @@ h1 {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    overflow: hidden;
+    overflow: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .quickapp-table {
