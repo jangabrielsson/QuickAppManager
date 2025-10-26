@@ -54,6 +54,6 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'HC3 QuickApp Manager v__VERSION__'
           releaseBody: 'See the assets to download and install this version.'
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
