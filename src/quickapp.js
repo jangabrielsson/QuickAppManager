@@ -64,31 +64,43 @@ class QuickAppWindow {
     }
 
     initializeEditor() {
-        // Initialize CodeMirror
-        this.editor = CodeMirror(this.editorContainer, {
+        const editorContainer = document.getElementById('editorContainer');
+        if (!editorContainer) return;
+        
+        this.editor = CodeMirror(editorContainer, {
+            lineNumbers: true,
             mode: 'lua',
             theme: 'monokai',
-            lineNumbers: true,
-            lineWrapping: true,
             indentUnit: 2,
             tabSize: 2,
-            indentWithTabs: false,
-            readOnly: false
+            indentWithTabs: false
         });
         
-        // Force refresh after layout is ready
-        setTimeout(() => {
-            if (this.editor) {
-                this.editor.refresh();
-            }
-        }, 100);
-        
-        // Track changes
         this.editor.on('change', () => {
-            if (this.currentFile && this.saveFileBtn) {
+            if (this.saveFileBtn && this.currentFile) {
                 this.saveFileBtn.style.display = 'block';
             }
         });
+        
+        // Force explicit height calculation
+        this.resizeEditor();
+        
+        // Re-resize on window resize
+        window.addEventListener('resize', () => this.resizeEditor());
+    }
+    
+    resizeEditor() {
+        if (!this.editor) return;
+        
+        const container = document.getElementById('editorContainer');
+        if (!container) return;
+        
+        // Get the actual height of the container
+        const height = container.offsetHeight;
+        console.log('Setting editor height to:', height);
+        
+        // Set explicit height
+        this.editor.setSize(null, height);
     }
 
     switchTab(tabName) {
@@ -294,6 +306,9 @@ class QuickAppWindow {
             }
             
             this.currentFile = fileName;
+            
+            // Resize editor after content is loaded
+            this.resizeEditor();
             
         } catch (error) {
             console.error('Failed to load file content:', error);
