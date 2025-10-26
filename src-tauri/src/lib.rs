@@ -69,15 +69,28 @@ pub fn run() {
         .item(&toggle_devtools)
         .build()?;
       
+      let check_for_updates = MenuItemBuilder::with_id("check_for_updates", "Check for Updates...")
+        .build(app)?;
+      
+      let help_menu = SubmenuBuilder::new(app, "Help")
+        .item(&check_for_updates)
+        .build()?;
+      
       let menu = Menu::default(&app.handle())?;
       menu.append(&view_menu)?;
+      menu.append(&help_menu)?;
       
       app.set_menu(menu)?;
       
       // Handle menu events
       app.on_menu_event(move |app, event| {
         println!("Menu event triggered: {:?}", event.id());
-        if event.id() == "toggle_devtools" {
+        if event.id() == "check_for_updates" {
+          println!("Check for updates menu clicked");
+          if let Some(window) = app.get_webview_window("main") {
+            window.emit("check-for-updates", ()).unwrap();
+          }
+        } else if event.id() == "toggle_devtools" {
           println!("Toggle devtools event received");
           if let Some(window) = app.get_webview_window("main") {
             println!("Got window 'main'");

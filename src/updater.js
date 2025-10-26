@@ -1,8 +1,8 @@
 // Auto-updater functionality
 
-async function setupUpdater() {
+async function setupUpdater(showNoUpdateDialog = false) {
     const { check } = window.__TAURI__?.updater || {};
-    const { ask } = window.__TAURI__?.dialog || {};
+    const { ask, message } = window.__TAURI__?.dialog || {};
     const { relaunch } = window.__TAURI__?.process || {};
     
     if (!check) {
@@ -48,6 +48,13 @@ async function setupUpdater() {
             }
         } else {
             console.log('No updates available');
+            // Show dialog if manually triggered
+            if (showNoUpdateDialog && message) {
+                await message('You are using the latest version.', {
+                    title: 'No Updates Available',
+                    kind: 'info'
+                });
+            }
         }
     } catch (error) {
         console.error('Update check failed:', error);
@@ -64,5 +71,13 @@ if (document.readyState === 'loading') {
     setTimeout(setupUpdater, 3000);
 }
 
+// Listen for manual update check from menu
+if (window.__TAURI__?.event) {
+    window.__TAURI__.event.listen('check-for-updates', () => {
+        console.log('Manual update check triggered from menu');
+        setupUpdater(true); // Show "no updates" dialog for manual checks
+    });
+}
+
 // Export for manual checking
-window.checkForUpdates = setupUpdater;
+window.checkForUpdates = () => setupUpdater(true);
