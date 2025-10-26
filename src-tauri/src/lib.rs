@@ -1,5 +1,5 @@
 use tauri::{Emitter, Manager};
-use tauri::menu::{Menu, MenuItemBuilder, SubmenuBuilder};
+use tauri::menu::{Menu, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder};
 
 #[tauri::command]
 fn get_hc3_config() -> Result<serde_json::Value, String> {
@@ -68,17 +68,26 @@ pub fn run() {
         .accelerator("CmdOrCtrl+Shift+I")
         .build(app)?;
       
+      // Create app menu (first menu on macOS)
+      let app_menu = SubmenuBuilder::new(app, "HC3 QuickApp Manager")
+        .item(&PredefinedMenuItem::about(app, None, None)?)
+        .item(&check_for_updates)
+        .separator()
+        .item(&PredefinedMenuItem::services(app, None)?)
+        .separator()
+        .item(&PredefinedMenuItem::hide(app, None)?)
+        .item(&PredefinedMenuItem::hide_others(app, None)?)
+        .item(&PredefinedMenuItem::show_all(app, None)?)
+        .separator()
+        .item(&PredefinedMenuItem::quit(app, None)?)
+        .build()?;
+      
       let view_menu = SubmenuBuilder::new(app, "View")
         .item(&toggle_devtools)
         .build()?;
       
-      let menu = Menu::default(&app.handle())?;
-      
-      // Insert "Check for Updates..." into the app menu (first menu on macOS)
-      if let Some(app_menu) = menu.get(app, "app") {
-        app_menu.append(&check_for_updates)?;
-      }
-      
+      let menu = Menu::new(app)?;
+      menu.append(&app_menu)?;
       menu.append(&view_menu)?;
       
       app.set_menu(menu)?;
