@@ -75,6 +75,25 @@ cargo tauri signer generate --write-keys ~/.tauri/eventlogger-nopass.key
 - ❌ Never commit private key to git
 - ✅ Add `~/.tauri/` to `.gitignore`
 
+**⚠️ CRITICAL: Base64 Encoding for GitHub Actions**
+
+For GitHub Actions, the keys MUST be base64-encoded as single-line strings:
+
+```bash
+# Get base64-encoded private key (for GitHub Secret)
+cat ~/.tauri/eventlogger-nopass.key | tr -d '\n' | tr -d '%'
+# Result: dW50cnVzdGVkIGNvbW1lbnQ6...  (long single line, ~272 chars)
+
+# Get base64-encoded public key (for tauri.conf.json)
+cat ~/.tauri/eventlogger-nopass.key.pub | tr -d '\n' | tr -d '%'
+# Result: dW50cnVzdGVkIGNvbW1lbnQ6...  (long single line, ~156 chars)
+```
+
+**Why this matters:**
+- ❌ Using decoded format with `\n` newlines will cause "Invalid symbol 32, offset 9" errors
+- ✅ Base64-encoded single-line strings work correctly
+- ✅ No spaces, no newlines, no line breaks in the encoded string
+
 ### Step 4: Configure Updater in tauri.conf.json
 
 **This is the most critical configuration!**
@@ -90,14 +109,17 @@ cargo tauri signer generate --write-keys ~/.tauri/eventlogger-nopass.key
         "https://github.com/USERNAME/REPO/releases/latest/download/latest.json"
       ],
       "dialog": true,
-      "pubkey": "untrusted comment: minisign public key: 2F6DB1077207AB57\nRWRXqwdyB7FtL4hu8werFuxMXtVslYfvJAIAYe6zHUU9NG6D5kbU+fGo"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZEM..."
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
     "createUpdaterArtifacts": true,  // ⚠️ CRITICAL! Must be true!
-    "icon": ["icons/icon.icns", "icons/icon.ico"]
+    "icon": ["icons/icon.icns", "icons/icon.ico"],
+    "macOS": {
+      "signingIdentity": "-"  // ⚠️ CRITICAL for macOS! Enables ad-hoc signing
+    }
   },
   "app": {
     "windows": [{
@@ -239,33 +261,39 @@ if (window.__TAURI__) {
 
 ### Step 7: Add Menu Item (in lib.rs)
 
+**⚠️ CRITICAL: Import Emitter trait for emit() method**
+
 ```rust
-use tauri::menu::{Menu, MenuItem, Submenu};
+use tauri::{Emitter, Manager};  // ⚠️ Must import Emitter!
+use tauri::menu::{Menu, MenuItem, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder};
 
 fn create_menu(app: &tauri::AppHandle) -> Result<Menu<tauri::Wry>, tauri::Error> {
-    let check_updates = MenuItem::with_id(
-        app,
-        "check-for-updates",
-        "Check for Updates...",
-        true,
-        None::<&str>,
-    )?;
+    let check_updates = MenuItemBuilder::with_id("check-for-updates", "Check for Updates...")
+        .build(app)?;
     
-    let window_menu = Submenu::with_items(
-        app,
-        "Window",
-        true,
-        &[&check_updates],
-    )?;
+    // Add to app menu (macOS) or Help menu (Windows/Linux)
+    let app_menu = SubmenuBuilder::new(app, "Your App Name")
+        .item(&PredefinedMenuItem::about(app, None, None)?)
+        .item(&check_updates)
+        .separator()
+        .item(&PredefinedMenuItem::quit(app, None)?)
+        .build()?;
     
-    Menu::with_items(app, &[&window_menu])
+    let menu = Menu::new(app)?;
+    menu.append(&app_menu)?;
+    
+    Ok(menu)
 }
 
 // In .setup():
 app.set_menu(create_menu(app)?)?;
 app.on_menu_event(|app, event| {
     if event.id() == "check-for-updates" {
-        app.emit("check-for-updates", ()).unwrap();
+        if let Some(window) = app.get_webview_window("main") {
+            window.emit("check-for-updates", ()).unwrap();  // emit() requires Emitter trait
+        }
+    }
+});
     }
 });
 ```
@@ -361,41 +389,43 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: lts/*
       
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
       
-      - name: Install dependencies (macOS)
-        if: matrix.platform == 'macos-latest'
-        run: |
-          # Add any macOS-specific dependencies
-          
+      - name: Install frontend dependencies
+        run: npm install  # ⚠️ REQUIRED even if no frontend deps!
+      
       - name: Build Tauri App
-        uses: tauri-apps/tauri-action@dev
+        uses: tauri-apps/tauri-action@v0  # Use v0 for Tauri 2.x
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""  # Empty for password-free key
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'Release ${{ github.ref_name }}'
           releaseBody: 'See the assets below to download the app for your platform.'
-          releaseDraft: false
+          releaseDraft: true  # Create draft for review before publishing
           prerelease: false
-          args: --target ${{ matrix.target }}  # Important for multi-arch builds
+          args: ${{ matrix.args }}
 ```
 
 **Critical Environment Variables:**
 - `GITHUB_TOKEN`: Auto-provided by GitHub Actions
-- `TAURI_SIGNING_PRIVATE_KEY`: Your private key (add to repo secrets)
+- `TAURI_SIGNING_PRIVATE_KEY`: Your **base64-encoded** private key (add to repo secrets)
+- `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`: Set to `""` for password-free keys
 
 **Important Notes:**
-- ✅ Use `tauri-action@dev` (supports Tauri 2.x)
-- ✅ Add `args: --target ${{ matrix.target }}` to prevent artifact name conflicts
+- ✅ Use `tauri-action@v0` (supports Tauri 2.x)
+- ✅ `npm install` is REQUIRED even if you have no frontend dependencies (tauri-action needs it)
+- ✅ Add `args: ${{ matrix.args }}` to pass target-specific arguments
 - ✅ `createUpdaterArtifacts: true` in tauri.conf.json triggers automatic `.sig` file generation
 - ✅ `latest.json` is automatically generated by tauri-action
+- ⚠️ Private key in GitHub secret must be base64-encoded single-line (see Step 3)
 
 ### Step 8: Add GitHub Secret
 
@@ -621,18 +651,81 @@ async function checkForUpdates(silent = false) {
 
 Before deploying auto-update:
 
-- [ ] All plugins added to `Cargo.toml`
+- [ ] All plugins added to `Cargo.toml` with devtools feature
 - [ ] All plugins initialized in `lib.rs`
 - [ ] Password-free signing key generated
-- [ ] Public key in `tauri.conf.json`
+- [ ] **Keys base64-encoded as single-line strings** (tr -d '\n')
+- [ ] Public key in `tauri.conf.json` (base64 format)
 - [ ] `createUpdaterArtifacts: true` in config
+- [ ] **`signingIdentity: "-"` in bundle.macOS config**
 - [ ] ACL permissions for dialog and process
+- [ ] **Emitter trait imported** (use tauri::{Emitter, Manager})
 - [ ] DevTools enabled and menu item added
 - [ ] Frontend updater code implemented
 - [ ] Try-catch blocks for graceful error handling
 - [ ] GitHub Actions workflow configured
-- [ ] Private key added to GitHub Secrets
+- [ ] **npm install step** in GitHub Actions
+- [ ] Private key added to GitHub Secrets (base64 format)
 - [ ] CSP allows IPC calls
+
+## Troubleshooting
+
+### Common Build Errors
+
+**Error: `failed to decode pubkey: Invalid symbol 32, offset 9`**
+- **Cause**: Public or private key has spaces/newlines
+- **Fix**: Use base64-encoded single-line format (see Step 3)
+```bash
+cat ~/.tauri/your.key | tr -d '\n' | tr -d '%'
+```
+
+**Error: `no method named 'emit' found`**
+- **Cause**: Missing Emitter trait import
+- **Fix**: Add to imports: `use tauri::{Emitter, Manager};`
+
+**Error: `sh: tauri: command not found` in GitHub Actions**
+- **Cause**: Missing npm install step
+- **Fix**: Add `npm install` step before tauri-action (even if no deps)
+
+**Error: App won't open on macOS (damaged/unidentified developer)**
+- **Cause**: Missing ad-hoc code signing
+- **Fix**: Add `"signingIdentity": "-"` to `bundle.macOS` in tauri.conf.json
+
+**Error: `no method named 'is_devtools_open' found`**
+- **Cause**: Missing devtools feature
+- **Fix**: Add `features = ["devtools"]` to tauri dependency in Cargo.toml
+
+**Error: Update check fails silently**
+- **Cause**: Missing ACL permissions for updater/dialog/process
+- **Fix**: Check `capabilities/default.json` includes all required permissions
+
+### Testing Updates
+
+1. **Build and install v0.1.0** locally
+2. **Create and push v0.1.1 tag** to trigger GitHub Actions
+3. **Wait for release** to be published
+4. **Launch v0.1.0 app** and wait 3 seconds (auto-check)
+5. **Or use menu** "Check for Updates..." (manual check)
+6. **Update dialog** should appear with release notes
+7. **After download** app should prompt to restart
+8. **Verify new version** after restart
+
+### Debug Commands
+
+```bash
+# Check key format
+file ~/.tauri/your.key
+cat ~/.tauri/your.key  # Should show base64-like content
+
+# Test local build
+cargo tauri build --debug
+
+# Check GitHub Actions logs
+# Go to: https://github.com/USERNAME/REPO/actions
+
+# Verify release assets
+# Should see: app.dmg, app.dmg.sig, latest.json
+```
 - [ ] Tested with actual releases
 
 ---
