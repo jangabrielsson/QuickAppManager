@@ -39,7 +39,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "untrusted comment: minisign public key: 6D3037DEE57E0B01\nRWQBC37l3jcwbRwNu8wuS0hfgnutwLcTdIJS+9wWh2cohAG3ayIjiqBj",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZEMzAzN0RFRTU3RTBCMDEKUldRQkMzN2wzamN3YlJ3TnU4d3VTMGhmZ251dHdMY1RkSUpTKzl3V2gyY29oQUczYXlJamlxQmoK",
       "endpoints": [
         "https://github.com/janzeman/QuickAppManager/releases/latest/download/latest.json"
       ]
