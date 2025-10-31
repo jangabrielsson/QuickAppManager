@@ -20,6 +20,7 @@ class QuickAppWindow {
         const params = new URLSearchParams(window.location.search);
         this.quickAppId = params.get('id');
         this.quickAppName = params.get('name') || 'QuickApp';
+        this.isChild = params.get('isChild') === 'true';
     }
 
     initializeElements() {
@@ -119,8 +120,20 @@ class QuickAppWindow {
         document.getElementById(`${tabName}-tab`).classList.add('active');
 
         // Load data for the tab if needed
-        if (tabName === 'files' && this.files.length === 0) {
-            this.loadFiles();
+        if (tabName === 'files') {
+            if (this.isChild) {
+                // Show message for child QuickApps
+                this.fileListContent.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #999;">
+                        <p style="font-size: 48px; margin: 0;">👶</p>
+                        <p style="font-size: 18px; margin: 10px 0;">Child QuickApp</p>
+                        <p style="font-size: 14px; margin: 0;">Child QuickApps do not have editable files.</p>
+                        <p style="font-size: 14px; margin: 5px 0;">Their code is managed by the parent QuickApp.</p>
+                    </div>
+                `;
+            } else if (this.files.length === 0) {
+                this.loadFiles();
+            }
         }
     }
 

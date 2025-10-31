@@ -176,13 +176,8 @@ class QuickAppManager {
                 <td>${qa.type || '-'}</td>
                 <td>${this.formatDate(qa.modified)}</td>
             `;
-            row.style.cursor = qa.isChild ? 'not-allowed' : 'pointer';
-            if (!qa.isChild) {
-                row.addEventListener('click', () => this.openQuickAppWindow(qa));
-            } else {
-                row.style.opacity = '0.7';
-                row.title = 'Child QuickApps do not have editable files';
-            }
+            row.style.cursor = 'pointer';
+            row.addEventListener('click', () => this.openQuickAppWindow(qa));
             this.quickAppTableBody.appendChild(row);
         });
     }
@@ -343,7 +338,7 @@ class QuickAppManager {
         
         // Create new window
         const webview = new WebviewWindow(label, {
-            url: `quickapp.html?id=${quickApp.id}&name=${encodeURIComponent(quickApp.name || 'QuickApp')}`,
+            url: `quickapp.html?id=${quickApp.id}&name=${encodeURIComponent(quickApp.name || 'QuickApp')}&isChild=${quickApp.isChild || false}`,
             title: `${quickApp.name || 'QuickApp'} - ${quickApp.id}`,
             width: 1000,
             height: 700,
