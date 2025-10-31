@@ -94,42 +94,47 @@ class QuickAppManager {
             const url1 = `${config.protocol}://${config.host}/api/devices?interface=quickApp`;
             const url2 = `${config.protocol}://${config.host}/api/devices?interface=quickAppChild`;
             
-            // Use Tauri's HTTP client to avoid CORS issues
-            const [response1, response2] = await Promise.all([
-                this.http.fetch(url1, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Basic ${btoa(`${config.user}:${config.password}`)}`,
-                        'Content-Type': 'application/json'
-                    }
-                }),
-                this.http.fetch(url2, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Basic ${btoa(`${config.user}:${config.password}`)}`,
-                        'Content-Type': 'application/json'
-                    }
-                })
-            ]);
+            // Fetch regular QuickApps
+            const response1 = await this.http.fetch(url1, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Basic ${btoa(`${config.user}:${config.password}`)}`,
+                    'Content-Type': 'application/json'
+                }
+            });
             
-            if (!response1.ok || !response2.ok) {
-                throw new Error(`HTTP error! status: ${response1.status || response2.status}`);
+            if (!response1.ok) {
+                throw new Error(`HTTP error! status: ${response1.status}`);
             }
 
-            // Get the response text and parse as JSON
             const text1 = await response1.text();
-            const text2 = await response2.text();
             const data1 = JSON.parse(text1);
-            const data2 = JSON.parse(text2);
-            
-            // Combine both arrays and mark children
             const quickApps = Array.isArray(data1) ? data1 : [];
-            const children = Array.isArray(data2) ? data2 : [];
             
-            // Mark child devices
-            children.forEach(child => {
-                child.isChild = true;
-            });
+            // Try to fetch children, but don't fail if it doesn't work
+            let children = [];
+            try {
+                const response2 = await this.http.fetch(url2, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Basic ${btoa(`${config.user}:${config.password}`)}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response2.ok) {
+                    const text2 = await response2.text();
+                    const data2 = JSON.parse(text2);
+                    children = Array.isArray(data2) ? data2 : [];
+                    
+                    // Mark child devices
+                    children.forEach(child => {
+                        child.isChild = true;
+                    });
+                }
+            } catch (childError) {
+                console.log('Note: Could not fetch child QuickApps:', childError.message);
+            }
             
             this.quickApps = [...quickApps, ...children];
             
