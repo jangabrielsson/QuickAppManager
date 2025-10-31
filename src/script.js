@@ -90,27 +90,50 @@ class QuickAppManager {
             // Get HC3 credentials from Tauri backend
             const config = await this.invoke('get_hc3_config');
             
-            const url = `${config.protocol}://${config.host}/api/devices?interface=quickApp`;
+            // Fetch both regular QuickApps and QuickApp children
+            const url1 = `${config.protocol}://${config.host}/api/devices?interface=quickApp`;
+            const url2 = `${config.protocol}://${config.host}/api/devices?interface=quickAppChild`;
             
             // Use Tauri's HTTP client to avoid CORS issues
-            const response = await this.http.fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Basic ${btoa(`${config.user}:${config.password}`)}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const [response1, response2] = await Promise.all([
+                this.http.fetch(url1, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Basic ${btoa(`${config.user}:${config.password}`)}`,
+                        'Content-Type': 'application/json'
+                    }
+                }),
+                this.http.fetch(url2, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Basic ${btoa(`${config.user}:${config.password}`)}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+            ]);
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response1.ok || !response2.ok) {
+                throw new Error(`HTTP error! status: ${response1.status || response2.status}`);
             }
 
             // Get the response text and parse as JSON
-            const text = await response.text();
-            const data = JSON.parse(text);
-            this.quickApps = Array.isArray(data) ? data : [];
+            const text1 = await response1.text();
+            const text2 = await response2.text();
+            const data1 = JSON.parse(text1);
+            const data2 = JSON.parse(text2);
             
-            console.log('Fetched QuickApps:', this.quickApps.length, 'items');
+            // Combine both arrays and mark children
+            const quickApps = Array.isArray(data1) ? data1 : [];
+            const children = Array.isArray(data2) ? data2 : [];
+            
+            // Mark child devices
+            children.forEach(child => {
+                child.isChild = true;
+            });
+            
+            this.quickApps = [...quickApps, ...children];
+            
+            console.log('Fetched QuickApps:', quickApps.length, 'regular,', children.length, 'children');
             this.updateConnectionStatus(true);
             this.renderQuickApps();
             
@@ -141,14 +164,20 @@ class QuickAppManager {
 
         sorted.forEach(qa => {
             const row = document.createElement('tr');
+            const childEmoji = qa.isChild ? '👶 ' : '';
             row.innerHTML = `
                 <td>${qa.id}</td>
-                <td>${qa.name || '-'}</td>
+                <td>${childEmoji}${qa.name || '-'}</td>
                 <td>${qa.type || '-'}</td>
                 <td>${this.formatDate(qa.modified)}</td>
             `;
-            row.style.cursor = 'pointer';
-            row.addEventListener('click', () => this.openQuickAppWindow(qa));
+            row.style.cursor = qa.isChild ? 'not-allowed' : 'pointer';
+            if (!qa.isChild) {
+                row.addEventListener('click', () => this.openQuickAppWindow(qa));
+            } else {
+                row.style.opacity = '0.7';
+                row.title = 'Child QuickApps do not have editable files';
+            }
             this.quickAppTableBody.appendChild(row);
         });
     }
